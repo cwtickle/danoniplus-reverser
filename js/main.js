@@ -240,6 +240,56 @@ const setParameters = (_names, _baseData) => {
 }
 
 /**
+ * エディター上の位置を計算
+ * @param {array} _names 
+ * @param {object} _baseData 
+ */
+const calcPoint = (_names, _baseData) => {
+
+    let maxPage = 200;
+    let currentPos = {};
+    let saveBaseData = {};
+    const keyNames = _names.concat([`speedFrame`, `boostFrame`]);
+    keyNames.forEach(name => {
+
+        if (_baseData[name] === undefined) {
+            return;
+        }
+        currentPos[name] = 0;
+        saveBaseData[name] = [];
+
+        for (let j = 0; j < g_paramObj.firstNums.length; j++) {
+            const nextFirst = (j === g_paramObj.firstNums.length - 1 ? Infinity : g_paramObj.firstNums[j + 1]);
+            const currentFirst = g_paramObj.firstNums[j];
+            const currentInterval = (g_paramObj.intervals[j] !== undefined ? g_paramObj.intervals[j] : 10);
+            const currentTempo = (g_paramObj.tempos[j] !== undefined ? g_paramObj.tempos[j] : maxPage);
+
+            for (let k = currentPos[name]; k < _baseData[name].length; k++) {
+                const num = _baseData[name][k];
+                if (nextFirst - num > 0) {
+                    saveBaseData[name].push(Math.round((num - currentFirst) / (currentInterval / 2)) + currentTempo * 64);
+                    currentPos[name]++;
+                } else {
+                    const currentMaxPage = Math.ceil(saveBaseData[name][saveBaseData[name].length - 1]) / 64;
+                    if (currentMaxPage > maxPage) {
+                        maxPage = currentMaxPage;
+                    }
+                    break;
+                }
+            }
+
+            const currentMaxPage = Math.ceil(saveBaseData[name][saveBaseData[name].length - 1]) / 64;
+            if (currentMaxPage > maxPage) {
+                maxPage = currentMaxPage;
+            }
+        }
+    });
+
+    console.log(saveBaseData);
+
+}
+
+/**
  * セーブデータ生成処理（メイン）
  * @param {string} _str 
  */
@@ -263,5 +313,7 @@ const makeSaveData = (_str) => {
     console.log(baseData);
 
     setParameters(keyNames, baseData);
+
+    calcPoint(keyNames, baseData);
 
 }
