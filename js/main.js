@@ -21,30 +21,22 @@ const g_keyObj = {
     chara5_0: [`left`, `down`, `up`, `right`, `space`],
     chara7_0: [`left`, `leftdia`, `down`, `space`, `up`, `rightdia`, `right`],
     chara7i_0: [`left`, `leftdia`, `down`, `space`, `up`, `rightdia`, `right`],
-    chara8_0: [`left`, `leftdia`, `down`, `space`, `up`, `rightdia`, `right`, `sleft`],
-    chara9A_0: [`left`, `down`, `up`, `right`, `space`, `sleft`, `sdown`, `sup`, `sright`],
-    chara9B_0: [`left`, `down`, `up`, `right`, `space`, `sleft`, `sdown`, `sup`, `sright`],
-    chara9i_0: [`sleft`, `sdown`, `sup`, `sright`, `left`, `down`, `up`, `right`, `space`],
-    chara11_0: [`sleft`, `sdown`, `sup`, `sright`,
-        `left`, `leftdia`, `down`, `space`, `up`, `rightdia`, `right`],
-    chara11L_0: [`sleft`, `sdown`, `sup`, `sright`,
-        `left`, `leftdia`, `down`, `space`, `up`, `rightdia`, `right`],
+    chara9_0: [`left`, `down`, `up`, `right`, `space`, `sleft`, `sdown`, `sup`, `sright`],
+    chara11_0: [`left`, `leftdia`, `down`, `space`, `up`, `rightdia`, `right`,
+        `sleft`, `sdown`, `sup`, `sright`],
+
     chara11i_0: [`left`, `down`, `gor`, `up`, `right`, `space`,
         `sleft`, `sdown`, `siyo`, `sup`, `sright`],
-    chara11W_0: [`sleft`, `sdown`, `sup`, `sright`,
-        `left`, `leftdia`, `down`, `space`, `up`, `rightdia`, `right`],
-    chara12_0: [`sleft`, `sdown`, `sup`, `sright`,
-        `oni`, `left`, `leftdia`, `down`, `space`, `up`, `rightdia`, `right`],
-    chara13_0: [`tleft`, `tdown`, `tup`, `tright`,
-        `left`, `down`, `up`, `right`, `space`, `sleft`, `sdown`, `sup`, `sright`],
+    chara12_0: [`oni`, `left`, `leftdia`, `down`, `space`, `up`, `rightdia`, `right`,
+        `sleft`, `sdown`, `sup`, `sright`],
+    chara13_0: [`left`, `down`, `up`, `right`, `space`, `sleft`, `sdown`, `sup`, `sright`,
+        `tleft`, `tdown`, `tup`, `tright`],
     chara14_0: [`sleftdia`, `sleft`, `sdown`, `sup`, `sright`, `srightdia`,
         `oni`, `left`, `leftdia`, `down`, `space`, `up`, `rightdia`, `right`],
     chara14i_0: [`gor`, `space`, `iyo`, `left`, `down`, `up`, `right`,
         `sleft`, `sleftdia`, `sdown`, `sspace`, `sup`, `srightdia`, `sright`],
-    chara15A_0: [`sleft`, `sdown`, `sup`, `sright`, `tleft`, `tdown`, `tup`, `tright`,
-        `left`, `leftdia`, `down`, `space`, `up`, `rightdia`, `right`],
-    chara15B_0: [`sleft`, `sdown`, `sup`, `sright`, `tleft`, `tdown`, `tup`, `tright`,
-        `left`, `leftdia`, `down`, `space`, `up`, `rightdia`, `right`],
+    chara15_0: [`left`, `leftdia`, `down`, `space`, `up`, `rightdia`, `right`,
+        `sleft`, `sdown`, `sup`, `sright`, `tleft`, `tdown`, `tup`, `tright`],
     chara16i_0: [`gor`, `space`, `iyo`, `left`, `down`, `up`, `right`,
         `sleft`, `sdown`, `sup`, `sright`, `aspace`, `aleft`, `adown`, `aup`, `aright`],
     chara17_0: [`aleft`, `bleft`, `adown`, `bdown`, `aup`, `bup`, `aright`, `bright`, `space`,
@@ -263,6 +255,8 @@ const calcPoint = (_names, _baseData) => {
             const currentFirst = g_paramObj.firstNums[j];
             const currentInterval = (g_paramObj.intervals[j] !== undefined ? g_paramObj.intervals[j] : 10);
             const currentTempo = (g_paramObj.tempos[j] !== undefined ? g_paramObj.tempos[j] : maxPage);
+            g_paramObj.intervals[j] = currentInterval;
+            g_paramObj.tempos[j] = currentTempo;
 
             for (let k = currentPos[name]; k < _baseData[name].length; k++) {
                 const num = _baseData[name][k];
@@ -284,10 +278,58 @@ const calcPoint = (_names, _baseData) => {
             }
         }
     });
+    g_paramObj.maxPage = maxPage;
 
     console.log(saveBaseData);
+    return saveBaseData;
 
 }
+
+/**
+ * セーブデータの出力処理
+ */
+const printSaveData = {
+
+    tickle: (_keys, _names, _saveData, _baseData, _scoreNo) => {
+        let saveData = `${_keys}/`;
+        _names.forEach(name => {
+            if (_saveData[name] !== undefined) {
+                saveData += `${_saveData[name].join(',')}`;
+            }
+            saveData += `&`;
+        });
+
+        [`speed`, `boost`].forEach((name, i) => {
+            if (_saveData[`${name}Frame`] !== undefined) {
+                let speedPrintArray = [];
+                for (let k = 0; k < _saveData[`${name}Frame`].length; k++) {
+                    speedPrintArray.push(`${_saveData[`${name}Frame`][k]}=${_baseData[`${name}Dat`][k]}`);
+                }
+                saveData += `${speedPrintArray.join(',')}`;
+            }
+            saveData += `&`;
+        });
+
+        saveData += `${g_rootObj.ryhthm_num !== undefined ? g_rootObj.ryhthm_num : ''}&`;
+        saveData += `${g_paramObj.firstNums.join(',')}&`;
+        saveData += `${g_paramObj.intervals.join(',')}&`;
+        saveData += `${g_paramObj.tempos.join(',')}&`;
+        saveData += `${_scoreNo}&`;
+        saveData += `${g_paramObj.maxPage < 100 ? 100 : g_paramObj.maxPage}&`;
+        saveData += `16&2&`;
+        saveData += `${g_rootObj.label_num !== undefined ? g_rootObj.label_num : '0'}&`;
+
+        return saveData;
+    },
+
+    doyle: (_keys, _names, _saveData, _baseData, _scoreNo) => {
+
+    },
+
+    fuji: (_keys, _names, _saveData, _baseData, _scoreNo) => {
+
+    },
+};
 
 /**
  * セーブデータ生成処理（メイン）
@@ -312,8 +354,13 @@ const makeSaveData = (_str) => {
 
     console.log(baseData);
 
+    // パラメーターの設定
     setParameters(keyNames, baseData);
 
-    calcPoint(keyNames, baseData);
+    // エディター上の位置を計算
+    const saveBaseData = calcPoint(keyNames, baseData);
+
+    const editorPtn = document.getElementById(`editor`).value;
+    return printSaveData[editorPtn](keyLabel, keyNames, saveBaseData, baseData, scoreNo);
 
 }

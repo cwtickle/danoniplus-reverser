@@ -23,7 +23,7 @@
         <option value="7">7</option>
         <option value="7i">7i</option>
         <option value="9">9A(DP)/9B</option>
-        <option value="11">8/11/11L</option>
+        <option value="11">8/11/11L/11W</option>
         <option value="11i">11i</option>
         <option value="12">12</option>
         <option value="13">13(TP)</option>
@@ -56,12 +56,14 @@
 
       <br>　
       <label for="interval">テンポ変化ページ: </label>
-      <input type="text" id="tempo" name="tempo" placeholder="0,2" value="" class="text-tempo" />
+      <input type="text" id="tempo" name="tempo" placeholder="0" value="" class="text-tempo" />
       <br>
       <label for="editor">変換先エディター: </label>
-      <input type="radio" name="editor" value="tickle" checked="checked"> tickle (Cross Walker)
-      <input type="radio" name="editor" value="doyle"> Doyle (SPEED START)
-      <input type="radio" name="editor" value="fuji"> FUJI (気分転換にRPG)
+      <select id="editor" name="editor">
+        <option value="tickle">tickle (Cross Walker)</option>
+        <option value="doyle">Doyle (SPEED START)</option>
+        <option value="fuji">FUJI (気分転換にRPG)</option>
+      </select>
 
       <div>
         <textarea id="input-dos-data"></textarea>
