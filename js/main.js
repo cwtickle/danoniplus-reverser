@@ -197,15 +197,44 @@ const getFirstNum = (_names, _baseData) => {
  * @param {object} _baseData 
  * @param {string} _intervals 
  */
-const setParameters = (_names, _baseData, _intervals) => {
+const setParameters = (_names, _baseData) => {
 
+    // ファーストナンバーの取得
     const firstNums = document.getElementById(`firstNum`).value;
-    if (firstNums === ``) {
-        g_paramObj.firstNums = [getFirstNum(_names, _baseData)];
-    } else {
+    if (g_rootObj.first_num !== undefined) {
+        g_paramObj.firstNums = g_rootObj.first_num.split(`,`);
+    } else if (firstNums !== ``) {
         g_paramObj.firstNums = firstNums.split(`,`);
+    } else {
+        g_paramObj.firstNums = [getFirstNum(_names, _baseData)];
     }
-    console.log(g_paramObj.firstNums);
+    document.getElementById(`firstNum`).value = g_paramObj.firstNums.join(`,`);
+
+    // Intervalの取得
+    const intervals = document.getElementById(`interval`).value;
+    if (g_rootObj.haba_num !== undefined) {
+        g_paramObj.intervals = g_rootObj.haba_num.split(`,`);
+    } else if (intervals !== ``) {
+        g_paramObj.intervals = intervals.split(`,`);
+    } else {
+        const tmpIntervals = bpmToInterval();
+        g_paramObj.intervals = (tmpIntervals !== undefined ? tmpIntervals.split(`,`) : [10]);
+    }
+    document.getElementById(`interval`).value = g_paramObj.intervals.join(`,`);
+
+    // BPMの取得
+    g_paramObj.bpms = g_paramObj.intervals.map(interval => 1800 / interval);
+    document.getElementById(`bpm`).value = g_paramObj.bpms.join(`,`);
+
+    // テンポ変化位置の取得
+    const tempos = document.getElementById(`tempo`).value;
+    if (g_rootObj.haba_page_num !== undefined) {
+        g_paramObj.tempos = g_rootObj.haba_page_num.split(`,`);
+    } else {
+        g_paramObj.tempos = (tempos !== `` ? tempos.split(`,`) : [0]);
+    }
+
+    console.log(g_paramObj);
 }
 
 /**
@@ -213,12 +242,6 @@ const setParameters = (_names, _baseData, _intervals) => {
  * @param {string} _str 
  */
 const makeSaveData = (_str) => {
-
-    // Interval未指定の場合はBPM値から取得
-    let intervals = document.getElementById(`interval`).value;
-    if (intervals === ``) {
-        intervals = bpmToInterval();
-    }
 
     // キー数及び譜面データ名の取得
     const keyLabel = document.getElementById(`keys`).value;
@@ -237,6 +260,6 @@ const makeSaveData = (_str) => {
 
     console.log(baseData);
 
-    setParameters(keyNames, baseData, intervals);
+    setParameters(keyNames, baseData);
 
 }
