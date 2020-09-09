@@ -133,6 +133,20 @@ const rawDosToObject = (_dos) => {
 }
 
 /**
+ * 最小値を取得
+ * @param {number} a 
+ * @param {number} b 
+ */
+const getMin = (a, b) => Math.min(a, b);
+
+/**
+ * 奇数・偶数番号の配列を取得
+ * @param {array} _array 
+ * @param {number} _oddEvenFlg (1: odd, 2: even)
+ */
+const getOddEvenArray = (_array, _oddEvenFlg) => _array.filter((value, i) => i % 2 === _oddEvenFlg - 1);
+
+/**
  * 譜面データを数字毎に分解して、名称別のオブジェクトへ格納
  * @param {array} _names 
  * @param {string} _scoreNo 
@@ -143,29 +157,23 @@ const createBaseData = (_names, _scoreNo, _keyNum) => {
     let baseData = {};
     _names.forEach(name => {
         if (g_rootObj[`${name}${_scoreNo}_data`] !== undefined && g_rootObj[`${name}${_scoreNo}_data`] !== ``) {
-            baseData[name] = (g_rootObj[`${name}${_scoreNo}_data`].split(`,`));
+            baseData[name] = g_rootObj[`${name}${_scoreNo}_data`].split(`,`).map(data => parseFloat(data)).sort((a, b) => a - b);
         }
     });
 
-    // speedX_change があれば、speedX_data と置き換える（例外処理）
-    if (g_rootObj[`speed${_scoreNo}_change`] !== undefined) {
-        baseData.speed = g_rootObj[`speed${_scoreNo}_change`].split(`,`);
-    }
+    // 速度変化情報を付加
+    const speedList = [`speed${_scoreNo}_data`, `speed${_scoreNo}_change`, `boost${_scoreNo}_data`];
+    const speedCategory = [`speed`, `speed`, `boost`];
+    speedList.forEach((data, i) => {
+        if (g_rootObj[data] !== undefined && g_rootObj[data] !== ``) {
+            const tmpSpeeds = g_rootObj[data].split(`,`);
+            baseData[`${speedCategory[i]}Frame`] = getOddEvenArray(tmpSpeeds, 1).map(data => parseFloat(data));
+            baseData[`${speedCategory[i]}Dat`] = getOddEvenArray(tmpSpeeds, 2).map(data => parseFloat(data));
+        }
+    });
+
     return baseData;
 }
-
-/**
- * 最小値を取得
- * @param {number} a 
- * @param {number} b 
- */
-const getMin = (a, b) => Math.min(a, b);
-
-/**
- * 奇数番号の配列を取得
- * @param {array} _array 
- */
-const getOddArray = (_array) => _array.filter((value, i) => i % 2 === 0);
 
 /**
  * ファーストナンバーの自動取得
@@ -174,16 +182,9 @@ const getOddArray = (_array) => _array.filter((value, i) => i % 2 === 0);
  */
 const getFirstNum = (_names, _baseData) => {
 
-    // speed, boostのみ速度データを抜き取り
-    const speeds = [`speed`, `boost`];
-    speeds.forEach(speed => {
-        if (_baseData[speed] !== undefined) {
-            _baseData[speed] = getOddArray(_baseData[speed]);
-        }
-    });
-
     let minData = [];
-    _names.forEach(name => {
+    const keyNames = _names.concat([`speedFrame`, `boostFrame`]);
+    keyNames.forEach(name => {
         if (_baseData[name] !== undefined) {
             minData.push(_baseData[name].reduce(getMin));
         }
@@ -233,6 +234,7 @@ const setParameters = (_names, _baseData) => {
     } else {
         g_paramObj.tempos = (tempos !== `` ? tempos.split(`,`) : [0]);
     }
+    document.getElementById(`tempo`).value = g_paramObj.tempos.join(`,`);
 
     console.log(g_paramObj);
 }
@@ -249,7 +251,7 @@ const makeSaveData = (_str) => {
     const frzNames = createFrzHeader(arrowNames);
 
     const keyNum = arrowNames.length;
-    const keyNames = arrowNames.concat(frzNames, [`speed`, `boost`]);
+    const keyNames = arrowNames.concat(frzNames);
 
     const tmpScoreNo = document.getElementById(`scoreNo`).value;
     const scoreNo = tmpScoreNo === `1` ? `` : tmpScoreNo;
