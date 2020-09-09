@@ -52,7 +52,7 @@ const bpmToInterval = () => {
 
     let intervals = [];
     bpms.split(`,`).forEach(bpm => {
-        intervals.push(1800 / bpm);
+        intervals.push(Math.round(1800 / bpm * 10000) / 10000);
     });
     document.getElementById(`interval`).value = intervals.join(`,`);
     return intervals.join(`,`);
@@ -216,7 +216,7 @@ const setParameters = (_names, _baseData) => {
     document.getElementById(`interval`).value = g_paramObj.intervals.join(`,`);
 
     // BPMの取得
-    g_paramObj.bpms = g_paramObj.intervals.map(interval => 1800 / interval);
+    g_paramObj.bpms = g_paramObj.intervals.map(interval => Math.round((1800 / interval * 10000) / 10000));
     document.getElementById(`bpm`).value = g_paramObj.bpms.join(`,`);
 
     // テンポ変化位置の取得
