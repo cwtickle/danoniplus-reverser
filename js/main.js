@@ -12,6 +12,7 @@
 const g_version = `Ver 0.1.0`;
 
 let g_rootObj = {};
+let g_paramObj = {};
 const g_keyObj = {
 
     // キー別ヘッダー
@@ -141,7 +142,7 @@ const createBaseData = (_names, _scoreNo, _keyNum) => {
 
     let baseData = {};
     _names.forEach(name => {
-        if (g_rootObj[`${name}${_scoreNo}_data`] !== undefined) {
+        if (g_rootObj[`${name}${_scoreNo}_data`] !== undefined && g_rootObj[`${name}${_scoreNo}_data`] !== ``) {
             baseData[name] = (g_rootObj[`${name}${_scoreNo}_data`].split(`,`));
         }
     });
@@ -151,6 +152,60 @@ const createBaseData = (_names, _scoreNo, _keyNum) => {
         baseData.speed = g_rootObj[`speed${_scoreNo}_change`].split(`,`);
     }
     return baseData;
+}
+
+/**
+ * 最小値を取得
+ * @param {number} a 
+ * @param {number} b 
+ */
+const getMin = (a, b) => Math.min(a, b);
+
+/**
+ * 奇数番号の配列を取得
+ * @param {array} _array 
+ */
+const getOddArray = (_array) => _array.filter((value, i) => i % 2 === 0);
+
+/**
+ * ファーストナンバーの自動取得
+ * @param {array} _names 
+ * @param {object} _baseData 
+ */
+const getFirstNum = (_names, _baseData) => {
+
+    // speed, boostのみ速度データを抜き取り
+    const speeds = [`speed`, `boost`];
+    speeds.forEach(speed => {
+        if (_baseData[speed] !== undefined) {
+            _baseData[speed] = getOddArray(_baseData[speed]);
+        }
+    });
+
+    let minData = [];
+    _names.forEach(name => {
+        if (_baseData[name] !== undefined) {
+            minData.push(_baseData[name].reduce(getMin));
+        }
+    });
+    return minData.reduce(getMin);
+}
+
+/**
+ * 各種パラメーターの設定
+ * @param {array} _names 
+ * @param {object} _baseData 
+ * @param {string} _intervals 
+ */
+const setParameters = (_names, _baseData, _intervals) => {
+
+    const firstNums = document.getElementById(`firstNum`).value;
+    if (firstNums === ``) {
+        g_paramObj.firstNums = [getFirstNum(_names, _baseData)];
+    } else {
+        g_paramObj.firstNums = firstNums.split(`,`);
+    }
+    console.log(g_paramObj.firstNums);
 }
 
 /**
@@ -178,9 +233,10 @@ const makeSaveData = (_str) => {
 
     // 入力データを分解してオブジェクト化
     g_rootObj = rawDosToObject(_str);
-
     const baseData = createBaseData(keyNames, scoreNo, keyNum);
 
     console.log(baseData);
+
+    setParameters(keyNames, baseData, intervals);
 
 }
