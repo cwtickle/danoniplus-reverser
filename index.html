@@ -34,13 +34,23 @@
         <option value="17">17</option>
       </select>
 
-      <label for="scoreNo">譜面番号: </label>
+      / <label for="scoreNo">譜面番号: </label>
       <input type="text" id="scoreNo" name="scoreNo" placeholder="1" value="" class="text-score-no" />
+
+      / <label for="rhythm">拍子: </label>
+      <select id="rhythm" name="rhythm">
+        <option value="2">4</option>
+        <option value="3">3</option>
+        <option value="5">5</option>
+        <option value="7">7</option>
+      </select>
 
       <br>
       <label for="separator">区切り文字: </label>
-      <input type="radio" name="separator" value="amp" checked="checked"> "&amp;"もしくは"|"　
-      <input type="radio" name="separator" value="pipe"> "|"のみ
+      <select id="separator" name="separator">
+        <option value="amp">"&amp;"もしくは"|"</option>
+        <option value="pipe">"|"のみ</option>
+      </select>
 
       <br>
       譜面基礎情報 (テンポ変化ごとにカンマ区切り)：<br>　

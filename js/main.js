@@ -44,6 +44,16 @@ const g_keyObj = {
 };
 
 /**
+ * 拍子別の小節数 (4拍子のみ例外的に2を指定)
+ */
+const g_measure = {
+    2: 16,
+    3: 15,
+    5: 15,
+    7: 14,
+};
+
+/**
  * BPMからIntervalへ変換
  */
 const bpmToInterval = () => {
@@ -108,7 +118,7 @@ const createFrzHeader = (_array) => {
 const rawDosToObject = (_dos) => {
 
     const obj = {};
-    const paramsTmp = document.getElementById(`separator`) === `amp` ? _dos.split(`&`).join(`|`) : _dos;
+    const paramsTmp = document.getElementById(`separator`).value === `amp` ? _dos.split(`&`).join(`|`) : _dos;
     const params = paramsTmp.split(`|`);
     for (let j = 0; j < params.length; j++) {
         const pos = params[j].indexOf(`=`);
@@ -228,6 +238,15 @@ const setParameters = (_names, _baseData) => {
     }
     document.getElementById(`tempo`).value = g_paramObj.tempos.join(`,`);
 
+    // 拍子データの取得
+    const rhythm = parseFloat(document.getElementById(`rhythm`).value);
+    if (g_rootObj.beat_num !== undefined) {
+        g_paramObj.rhythm = parseFloat(g_rootObj.beat_num);
+    } else {
+        g_paramObj.rhythm = rhythm;
+    }
+    document.getElementById(`rhythm`).value = g_paramObj.rhythm;
+
     console.log(g_paramObj);
 }
 
@@ -261,10 +280,11 @@ const calcPoint = (_names, _baseData) => {
             for (let k = currentPos[name]; k < _baseData[name].length; k++) {
                 const num = _baseData[name][k];
                 if (nextFirst - num > 0) {
-                    saveBaseData[name].push(Math.round((num - currentFirst) / (currentInterval / 2)) + currentTempo * 64);
+                    saveBaseData[name].push(Math.round((num - currentFirst) / (currentInterval / 2))
+                        + currentTempo * g_measure[g_paramObj.rhythm] * 4);
                     currentPos[name]++;
                 } else {
-                    const currentMaxPage = Math.ceil(saveBaseData[name][saveBaseData[name].length - 1]) / 64;
+                    const currentMaxPage = Math.ceil(saveBaseData[name][saveBaseData[name].length - 1]) / (g_measure[g_paramObj.rhythm] * 4);
                     if (currentMaxPage > maxPage) {
                         maxPage = currentMaxPage;
                     }
@@ -272,7 +292,7 @@ const calcPoint = (_names, _baseData) => {
                 }
             }
 
-            const currentMaxPage = Math.ceil(saveBaseData[name][saveBaseData[name].length - 1]) / 64;
+            const currentMaxPage = Math.ceil(saveBaseData[name][saveBaseData[name].length - 1]) / (g_measure[g_paramObj.rhythm] * 4);
             if (currentMaxPage > maxPage) {
                 maxPage = currentMaxPage;
             }
@@ -310,13 +330,13 @@ const printSaveData = {
             saveData += `&`;
         });
 
-        saveData += `${g_rootObj.ryhthm_num !== undefined ? g_rootObj.ryhthm_num : ''}&`;
+        saveData += `&`;
         saveData += `${g_paramObj.firstNums.join(',')}&`;
         saveData += `${g_paramObj.intervals.join(',')}&`;
         saveData += `${g_paramObj.tempos.join(',')}&`;
         saveData += `${_scoreNo}&`;
         saveData += `${g_paramObj.maxPage < 100 ? 100 : g_paramObj.maxPage}&`;
-        saveData += `16&2&`;
+        saveData += `${g_measure[g_paramObj.rhythm]}&${g_paramObj.rhythm}&`;
         saveData += `${g_rootObj.label_num !== undefined ? g_rootObj.label_num : '0'}&`;
 
         return saveData;
