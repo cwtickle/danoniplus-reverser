@@ -299,7 +299,7 @@ const printSaveData = {
             saveData += `&`;
         });
 
-        [`speed`, `boost`].forEach((name, i) => {
+        [`speed`, `boost`].forEach(name => {
             if (_saveData[`${name}Frame`] !== undefined) {
                 let speedPrintArray = [];
                 for (let k = 0; k < _saveData[`${name}Frame`].length; k++) {
@@ -323,7 +323,33 @@ const printSaveData = {
     },
 
     doyle: (_keys, _names, _saveData, _baseData, _scoreNo) => {
+        let saveData = `Dancing Onigiri Save Data`;
+        saveData += `&musicTitle=&artist=&artistUrl=&difName=Normal&speedlock=1&index=${_scoreNo}&keys=${_keys}`;
 
+        _names.forEach((name, i) => {
+
+            if (i < _names.length / 2) {
+                saveData += `&arrow_data(${i})=${_saveData[name] !== undefined ? _saveData[name].join(',') : ''}`;
+            } else {
+                saveData += `&frzarrow_data(${i - _names.length / 2})=${_saveData[name] !== undefined ? _saveData[name].join(',') : ''}`;
+            }
+        });
+
+        [`speed`, `boost`].forEach(name => {
+            if (_saveData[`${name}Frame`] !== undefined) {
+                let speedPrintArray = [];
+                for (let k = 0; k < _saveData[`${name}Frame`].length; k++) {
+                    speedPrintArray.push(`${_saveData[`${name}Frame`][k]},${_baseData[`${name}Dat`][k]}`);
+                }
+                saveData += `${speedPrintArray.join(',')}`;
+            }
+            saveData += `&`;
+        });
+
+        saveData += `&first_data=${g_paramObj.firstNums.join(',')}&interval_data=${g_paramObj.intervals.join(',')}`;
+        saveData += `&rhythmchange_data=&version=2.38&dosPath=&tuning=name`;
+
+        return saveData;
     },
 
     fuji: (_keys, _names, _saveData, _baseData, _scoreNo) => {
