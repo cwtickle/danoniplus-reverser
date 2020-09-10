@@ -142,6 +142,13 @@ const rawDosToObject = (_dos) => {
 const getMin = (a, b) => Math.min(a, b);
 
 /**
+ * 最大値を取得
+ * @param {number} a 
+ * @param {number} b 
+ */
+const getMax = (a, b) => Math.max(a, b);
+
+/**
  * 奇数・偶数番号の配列を取得
  * @param {array} _array 
  * @param {number} _oddEvenFlg (1: odd, 2: even)
@@ -192,6 +199,23 @@ const getFirstNum = (_names, _baseData) => {
         }
     });
     return minData.reduce(getMin);
+}
+
+/**
+ * ラストナンバーの自動取得
+ * @param {array} _names 
+ * @param {object} _baseData 
+ */
+const getLastNum = (_names, _baseData) => {
+
+    let maxData = [];
+    const keyNames = _names.concat([`speedFrame`, `boostFrame`]);
+    keyNames.forEach(name => {
+        if (_baseData[name] !== undefined) {
+            maxData.push(_baseData[name].reduce(getMax));
+        }
+    });
+    return maxData.reduce(getMax);
 }
 
 /**
@@ -306,6 +330,43 @@ const calcPoint = (_names, _baseData) => {
 }
 
 /**
+ * FUJIさんエディター Ver2版出力
+ * @param {string} _keys 
+ * @param {array} _names 
+ * @param {object} _saveData 
+ * @param {object} _baseData 
+ * @param {string} _scoreNo 
+ * @param {array} _lastNums 
+ * @param {number} _maxBar 
+ */
+const printFuji2 = (_keys, _names, _saveData, _baseData, _scoreNo, _lastNums, _maxBar) => {
+    let saveData = `${_keys}key2.00\r\n${_scoreNo}\r\n\r\n0/${Math.round(g_paramObj.firstNums[0] * 10)},`;
+
+    for (let j = 1; j < g_paramObj.firstNums.length; j++) {
+        saveData += `${g_paramObj.tempos[j] * 4}/`
+        if (g_paramObj.firstNums[j] !== g_paramObj.firstNums[j - 1] + _lastNums[j - 1]) {
+            let tmpLastNum = Math.round(g_paramObj.firstNums[j - 1] * 10) + Math.round(_lastNums[j - 1] * 10);
+            saveData += `${tmpLastNum}/`;
+        }
+        saveData += `${Math.round(g_paramObj.firstNums[j] * 10)},`;
+    }
+    const lastn = g_paramObj.firstNums.length - 1;
+    let tmpLastNum = Math.round(g_paramObj.firstNums[lastn] * 10) + Math.round(_lastNums[lastn] * 10);
+    saveData += `${_maxBar}/${tmpLastNum},\r\n`;
+
+    saveData += `\r\n;===以下譜面\r\n`;
+
+    // 小節部:00～15, 矢印部:0～6, 調整部:1桁
+
+    // 譜面(矢印出力)
+
+    // フリーズ開始：小節部:00～15, 矢印部:0～6, 調整部:1桁(開始Def:5)
+
+    // 譜面(フリーズアロー出力)
+
+};
+
+/**
  * セーブデータの出力処理
  */
 const printSaveData = {
@@ -373,7 +434,30 @@ const printSaveData = {
     },
 
     fuji: (_keys, _names, _saveData, _baseData, _scoreNo) => {
+        const lastNum = getLastNum(_names, _baseData);
+        let maxBar = Math.ceil((lastNum + 1) / g_measure[g_paramObj.rhythm]);
+        if (maxBar < 120) {
+            maxBar = 120;
+        }
 
+        let lastNums = [];
+        g_paramObj.firstNums.forEach((firstNum, i) => {
+            const tempoBar = g_paramObj.tempos[i] * 4;
+            if (tempoBar > maxBar || i === g_paramObj.firstNums.length - 1) {
+                lastNums[i] = g_paramObj.intervals[i]
+                    * (maxBar - tempoBar) * g_measure[g_paramObj.rhythm] / 2;
+            } else {
+                lastNums[i] = g_paramObj.intervals[i]
+                    * (g_paramObj.tempos[i + 1] - g_paramObj.tempos[i]) * g_measure[g_paramObj.rhythm] * 2;
+            }
+        });
+
+        let saveData = ``;
+        if ([`5`, `7`, `7i`, `9`, `11`].includes(_keys)) {
+            saveData = printFuji2(_keys, _names, _saveData, _baseData, _scoreNo, lastNums, maxBar);
+        } else {
+
+        }
     },
 };
 
