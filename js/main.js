@@ -229,7 +229,7 @@ const setParameters = (_names, _baseData) => {
     // ファーストナンバーの取得
     const firstNums = document.getElementById(`firstNum`).value;
     if (g_rootObj.first_num !== undefined) {
-        g_paramObj.firstNums = g_rootObj.first_num.split(`,`);
+        g_paramObj.firstNums = g_rootObj.first_num.split(`,`).map(data => parseFloat(data));
     } else if (firstNums !== ``) {
         g_paramObj.firstNums = firstNums.split(`,`);
     } else {
@@ -240,7 +240,7 @@ const setParameters = (_names, _baseData) => {
     // Intervalの取得
     const intervals = document.getElementById(`interval`).value;
     if (g_rootObj.haba_num !== undefined) {
-        g_paramObj.intervals = g_rootObj.haba_num.split(`,`);
+        g_paramObj.intervals = g_rootObj.haba_num.split(`,`).map(data => parseFloat(data));
     } else if (intervals !== ``) {
         g_paramObj.intervals = intervals.split(`,`);
     } else {
@@ -256,7 +256,7 @@ const setParameters = (_names, _baseData) => {
     // テンポ変化位置の取得
     const tempos = document.getElementById(`tempo`).value;
     if (g_rootObj.haba_page_num !== undefined) {
-        g_paramObj.tempos = g_rootObj.haba_page_num.split(`,`);
+        g_paramObj.tempos = g_rootObj.haba_page_num.split(`,`).map(data => parseFloat(data));
     } else {
         g_paramObj.tempos = (tempos !== `` ? tempos.split(`,`) : [0]);
     }
@@ -265,7 +265,7 @@ const setParameters = (_names, _baseData) => {
     // 拍子データの取得
     const rhythm = parseFloat(document.getElementById(`rhythm`).value);
     if (g_rootObj.beat_num !== undefined) {
-        g_paramObj.rhythm = parseFloat(g_rootObj.beat_num);
+        g_paramObj.rhythm = parseFloat(g_rootObj.beat_num === `4` ? `2` : g_rootObj.beat_num);
     } else {
         g_paramObj.rhythm = rhythm;
     }
@@ -356,13 +356,36 @@ const printFuji2 = (_keys, _names, _saveData, _baseData, _scoreNo, _lastNums, _m
 
     saveData += `\r\n;===以下譜面\r\n`;
 
-    // 小節部:00～15, 矢印部:0～6, 調整部:1桁
+    let editorData = [];
+    _names.forEach((name, i) => {
 
-    // 譜面(矢印出力)
+        if (_saveData[name] === undefined) {
+            return;
+        }
+        if (i < _names.length / 2) {
+            // 小節部:00～15, 矢印部:0～6, 調整部:1桁
+            // 譜面(矢印出力)
+            _saveData[name].forEach(koma => {
+                if (editorData[koma] === undefined) {
+                    editorData[koma] = [];
+                }
+                editorData[koma].push(`${(koma % 16).toString(16)}${i.toString(36)}0`);
+            });
+        } else {
+            // フリーズ開始：小節部:00～15, 矢印部:0～6, 調整部:1桁(開始Def:5)
+            // 譜面(フリーズアロー出力)
+            const frzStarts = getOddEvenArray(_saveData[name], 1);
+            const frzEnds = getOddEvenArray(_saveData[name], 2);
+            frzStarts.forEach((koma, i) => {
+                if (editorData[koma] === undefined) {
+                    editorData[koma] = [];
+                }
+                editorData[koma].push(`${(koma % 16).toString(16)}${i.toString(36)}0+${String(frzEnds[i] - koma).padStart(3, '0')}`);
+            })
+        }
+    });
 
-    // フリーズ開始：小節部:00～15, 矢印部:0～6, 調整部:1桁(開始Def:5)
-
-    // 譜面(フリーズアロー出力)
+    console.log(editorData);
 
 };
 
