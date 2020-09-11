@@ -335,26 +335,8 @@ const calcPoint = (_names, _baseData) => {
  * @param {array} _names 
  * @param {object} _saveData 
  * @param {object} _baseData 
- * @param {string} _scoreNo 
- * @param {array} _lastNums 
- * @param {number} _maxBar 
  */
-const printFuji2 = (_keys, _names, _saveData, _baseData, _scoreNo, _lastNums, _maxBar) => {
-    let saveData = `${_keys}key2.00\r\n${_scoreNo}\r\n\r\n0/${Math.round(g_paramObj.firstNums[0] * 10)},`;
-
-    for (let j = 1; j < g_paramObj.firstNums.length; j++) {
-        saveData += `${g_paramObj.tempos[j] * 4}/`
-        if (g_paramObj.firstNums[j] !== g_paramObj.firstNums[j - 1] + _lastNums[j - 1]) {
-            let tmpLastNum = Math.round(g_paramObj.firstNums[j - 1] * 10) + Math.round(_lastNums[j - 1] * 10);
-            saveData += `${tmpLastNum}/`;
-        }
-        saveData += `${Math.round(g_paramObj.firstNums[j] * 10)},`;
-    }
-    const lastn = g_paramObj.firstNums.length - 1;
-    let tmpLastNum = Math.round(g_paramObj.firstNums[lastn] * 10) + Math.round(_lastNums[lastn] * 10);
-    saveData += `${_maxBar}/${tmpLastNum},\r\n`;
-
-    saveData += `\r\n;===以下譜面\r\n`;
+const makePointFuji2 = (_keys, _names, _saveData, _baseData) => {
 
     let editorData = [];
     _names.forEach((name, i) => {
@@ -385,8 +367,25 @@ const printFuji2 = (_keys, _names, _saveData, _baseData, _scoreNo, _lastNums, _m
         }
     });
 
-    console.log(editorData);
+    const speedPoint = {
+        speed: `b`,
+        boost: `c`,
+    };
+    [`speed`, `boost`].forEach(name => {
+        if (_saveData[`${name}Frame`] === undefined) {
+            return;
+        }
+        _saveData[`${name}Frame`].forEach((koma, i) => {
+            if (editorData[koma] === undefined) {
+                editorData[koma] = [];
+            }
+            const speedZ = Math.floor((_baseData[`${name}Dat`][i] + 16) % 16).toString(16).toUpperCase();
+            const speedS = String(((Math.round(_baseData[`${name}Dat`][i] * 100) % 100) + 100) % 100).padStart(2, '0');
+            editorData[koma].push(`${(koma % 16).toString(16)}${speedPoint[name]}0-${speedZ}${speedS}`);
+        });
+    });
 
+    return editorData;
 };
 
 /**
@@ -457,6 +456,8 @@ const printSaveData = {
     },
 
     fuji: (_keys, _names, _saveData, _baseData, _scoreNo) => {
+
+        const majorKeysFlg = [`5`, `7`, `7i`, `9`, `11`].includes(_keys);
         const lastNum = getLastNum(_names, _baseData);
         let maxBar = Math.ceil((lastNum + 1) / g_measure[g_paramObj.rhythm]);
         if (maxBar < 120) {
@@ -475,12 +476,41 @@ const printSaveData = {
             }
         });
 
-        let saveData = ``;
-        if ([`5`, `7`, `7i`, `9`, `11`].includes(_keys)) {
-            saveData = printFuji2(_keys, _names, _saveData, _baseData, _scoreNo, lastNums, maxBar);
+        let saveData = (majorKeysFlg ? `${_keys}key2.00` : `nkey1.000/template_${_keys}`);
+        saveData += `\r\n${_scoreNo}\r\n\r\n0/${Math.round(g_paramObj.firstNums[0] * 10)},`;
+
+        for (let j = 1; j < g_paramObj.firstNums.length; j++) {
+            saveData += `${g_paramObj.tempos[j] * 4}/`
+            if (g_paramObj.firstNums[j] !== g_paramObj.firstNums[j - 1] + lastNums[j - 1]) {
+                let tmpLastNum = Math.round(g_paramObj.firstNums[j - 1] * 10) + Math.round(lastNums[j - 1] * 10);
+                saveData += `${tmpLastNum}/`;
+            }
+            saveData += `${Math.round(g_paramObj.firstNums[j] * 10)},`;
+        }
+        const lastn = g_paramObj.firstNums.length - 1;
+        let tmpLastNum = Math.round(g_paramObj.firstNums[lastn] * 10) + Math.round(lastNums[lastn] * 10);
+        saveData += `${maxBar}/${tmpLastNum},\r\n`;
+
+        saveData += `\r\n;===以下譜面\r\n`;
+
+        let editorData = ``;
+        if (majorKeysFlg) {
+            editorData = makePointFuji2(_keys, _names, _saveData, _baseData);
         } else {
 
         }
+
+        for (let j = 0, barIndex = 0; j < maxBar * 16; j += 16, barIndex++) {
+            saveData += `${String(barIndex).padStart(3, '0')}:`;
+            saveData += `${editorData.slice(j * 16, (j + 1) * 16).filter(value => value !== undefined).join(`,`)}\r\n`;
+        }
+
+        saveData += `;==譜面製作者\r\nDanOni\r\n`;
+        saveData += `;==ヘッダ\r\n`;
+        saveData += `;==フッタ\r\n`;
+        saveData += `;==ここまで`;
+
+        return saveData;
     },
 };
 
