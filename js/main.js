@@ -5,11 +5,11 @@
  *
  * Source by tickle
  * Created : 2020/09/09
- * Revised : 
+ * Revised : 2020/09/12
  *
  * https://github.com/cwtickle/danoniplus-reverser
  */
-const g_version = `Ver 0.1.0`;
+const g_version = `Ver 0.12.1`;
 
 let g_rootObj = {};
 let g_paramObj = {};
@@ -192,13 +192,15 @@ const createBaseData = (_names, _scoreNo, _keyNum) => {
 const getFirstNum = (_names, _baseData) => {
 
     let minData = [];
+    let dataExistFlg = false;
     const keyNames = _names.concat([`speedFrame`, `boostFrame`]);
     keyNames.forEach(name => {
         if (_baseData[name] !== undefined) {
             minData.push(_baseData[name].reduce(getMin));
+            dataExistFlg = true;
         }
     });
-    return minData.reduce(getMin);
+    return dataExistFlg ? minData.reduce(getMin) : 200;
 }
 
 /**
@@ -209,13 +211,15 @@ const getFirstNum = (_names, _baseData) => {
 const getLastNum = (_names, _baseData) => {
 
     let maxData = [];
+    let dataExistFlg = false;
     const keyNames = _names.concat([`speedFrame`, `boostFrame`]);
     keyNames.forEach(name => {
         if (_baseData[name] !== undefined) {
             maxData.push(_baseData[name].reduce(getMax));
+            dataExistFlg = true;
         }
     });
-    return maxData.reduce(getMax);
+    return dataExistFlg ? maxData.reduce(getMax) : 200;
 }
 
 /**
@@ -270,8 +274,6 @@ const setParameters = (_names, _baseData) => {
         g_paramObj.rhythm = rhythm;
     }
     document.getElementById(`rhythm`).value = g_paramObj.rhythm;
-
-    console.log(g_paramObj);
 }
 
 /**
@@ -324,7 +326,6 @@ const calcPoint = (_names, _baseData) => {
     });
     g_paramObj.maxPage = maxPage;
 
-    console.log(saveBaseData);
     return saveBaseData;
 
 }
@@ -531,7 +532,7 @@ const printSaveData = {
     fuji: (_keys, _names, _saveData, _baseData, _scoreNo) => {
 
         const majorKeysFlg = [`5`, `7`, `7i`, `9`, `11`].includes(_keys);
-        const lastNum = getLastNum(_names, _baseData);
+        const lastNum = getLastNum(_names, _saveData);
         let maxBar = Math.ceil((lastNum + 1) / g_measure[g_paramObj.rhythm]);
         if (maxBar < 120) {
             maxBar = 120;
@@ -564,6 +565,21 @@ const printSaveData = {
         let tmpLastNum = Math.round(g_paramObj.firstNums[lastn] * 10) + Math.round(lastNums[lastn] * 10);
         saveData += `${maxBar}/${tmpLastNum},\r\n`;
 
+        /*
+        // 3, 5, 7拍子対応 - コマスキップ処理が別途必要なため一時コメント化
+        const skipRhythm = {
+            3: [4, 1],
+            5: [12, 2],
+            7: [4, 2],
+        }
+        if (g_paramObj.rhythm !== 2) {
+            let tmpSkipData = [];
+            for (let j = 0; j < maxBar; j += skipRhythm[g_paramObj.rhythm][1]) {
+                tmpSkipData.push(`${j}/${skipRhythm[g_paramObj.rhythm][0]}`);
+            }
+            saveData += tmpSkipData.join(`,`);
+        }
+        */
         saveData += `\r\n;===以下譜面\r\n`;
 
         let editorData = ``;
@@ -607,8 +623,6 @@ const makeSaveData = (_str) => {
     // 入力データを分解してオブジェクト化
     g_rootObj = rawDosToObject(_str);
     const baseData = createBaseData(keyNames, scoreNo, keyNum);
-
-    console.log(baseData);
 
     // パラメーターの設定
     setParameters(keyNames, baseData);
