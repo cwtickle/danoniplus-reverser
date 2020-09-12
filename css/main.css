@@ -1,0 +1,46 @@
+body {
+  background-color: #ccccff;
+  width: 100%;
+  text-align: center;
+  font-family: "Segoe UI", "Yu Gothic", sans-serif, ;
+}
+
+#content {
+  width: 80%;
+  text-align: left;
+  margin: 0 10%;
+  box-sizing: border-box;
+}
+
+p {
+  width: 100%;
+}
+
+textarea {
+  width: 100%;
+  height: 8em;
+}
+
+textarea:focus {
+  outline: none;
+  border-color: #0000ff;
+  border-width: 1.5px;
+}
+
+.common_button {
+  width: 20%;
+  height: 2em;
+  margin-right: 5%;
+}
+
+.text-score-no {
+  width: 5%;
+}
+
+.text-first-num {
+  width: 10%;
+}
+
+.text-tempo {
+  width: 20%;
+}

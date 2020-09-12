@@ -1,0 +1,107 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="css/main.css" />
+  <title>Dancing☆Onigiri ChartReverser (セーブデータ復元ツール)</title>
+</head>
+
+<body>
+  <h1>Dancing☆Onigiri ChartReverser</h1>
+  <span id="version"></span>
+  <hr />
+  <div id="content">
+    <p>
+      Dancing☆Onigiriの譜面データを各種エディターのセーブデータに変換します。<br>
+      変換するデータを入力してください。<br>
+    </p>
+    <form>
+      <label for="keys">キー数: </label>
+      <select id="keys" name="keys">
+        <option value="5">5</option>
+        <option value="7">7</option>
+        <option value="7i">7i</option>
+        <option value="9">9A(DP)/9B</option>
+        <option value="11">8/11/11L/11W</option>
+        <option value="11i">11i</option>
+        <option value="12">12</option>
+        <option value="13">13(TP)</option>
+        <option value="14">14</option>
+        <option value="14i">14i</option>
+        <option value="15">15A/15B</option>
+        <option value="16i">16i</option>
+        <option value="17">17</option>
+      </select>
+
+      / <label for="scoreNo">譜面番号: </label>
+      <input type="text" id="scoreNo" name="scoreNo" placeholder="1" value="" class="text-score-no" />
+
+      / <label for="rhythm">拍子: </label>
+      <select id="rhythm" name="rhythm">
+        <option value="2">4</option>
+        <option value="3">3</option>
+        <option value="5">5</option>
+        <option value="7">7</option>
+      </select>
+
+      <br>
+      <label for="separator">区切り文字: </label>
+      <select id="separator" name="separator">
+        <option value="amp">"&amp;"もしくは"|"</option>
+        <option value="pipe">"|"のみ</option>
+      </select>
+
+      <br>
+      譜面基礎情報 (テンポ変化ごとにカンマ区切り)：<br>　
+      <label for="firstNum">ファーストナンバー: </label>
+      <input type="text" id="firstNum" name="firstNum" value="" class="text-first-num" />
+
+      / <label for="interval">BPM: </label>
+      <input type="text" id="bpm" name="bpm" value="" class="text-first-num" />
+      <button type="button" onclick="bpmToInterval()">Convert</button>
+
+      / <label for="interval">4分間隔: </label>
+      <input type="text" id="interval" name="interval" value="" class="text-first-num" />
+
+      <br>　
+      <label for="interval">テンポ変化ページ: </label>
+      <input type="text" id="tempo" name="tempo" value="" class="text-tempo" />
+      <br>
+      <label for="editor">変換先エディター: </label>
+      <select id="editor" name="editor">
+        <option value="tickle">tickle (Cross Walker)</option>
+        <option value="doyle">Doyle (SPEED START)</option>
+        <option value="fuji">FUJI (気分転換にRPG)</option>
+      </select>
+
+      <div>
+        <textarea id="input-dos-data"></textarea>
+      </div>
+      <button type="button" onclick="convert()" class="common_button">Convert</button>
+      <input type="reset" value="Reset" class="common_button" />
+      <div>↓<br>変換後データ</div>
+      <div>
+        <textarea id="output-save-data" readonly></textarea>
+      </div>
+      <button type="button" onclick="copy()" class="common_button">Copy</button>
+    </form>
+  </div>
+  <hr />
+</body>
+<script type="text/javascript" src="js/main.js"></script>
+<script>
+  function convert() {
+    const baseStr = document.getElementById("input-dos-data").value;
+    const saveData = makeSaveData(baseStr);
+    document.getElementById("output-save-data").value = saveData;
+  }
+
+  function copy() {
+    const saveData = document.getElementById("output-save-data").value;
+    navigator.clipboard.writeText(saveData);
+  }
+</script>
+
+</html>
