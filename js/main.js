@@ -9,7 +9,10 @@
  *
  * https://github.com/cwtickle/danoniplus-reverser
  */
-const g_version = `Ver 0.12.1`;
+const g_version = `Ver 0.12.2`;
+
+// バージョン名の表記
+document.getElementById(`version`).innerHTML = `(${g_version})`;
 
 let g_rootObj = {};
 let g_paramObj = {};
