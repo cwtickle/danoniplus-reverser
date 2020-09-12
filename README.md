@@ -1,5 +1,6 @@
 # Dancing☆Onigiri ChartReverser
-Dancing☆Onigiriの譜面データを、各種エディターデータへ逆変換するツールです。
+Dancing☆Onigiriの譜面データを、各種エディターデータへ逆変換するツールです。  
+(従来の ScoreRevival に相当するツール)
 
 ## How to Use
 1.  [このページにアクセス](https://cwtickle.github.io/danoniplus-reverser/)します。
@@ -15,3 +16,4 @@ Dancing☆Onigiriの譜面データを、各種エディターデータへ逆変
 - 3連符の切り替えには対応していません。
 - BPMやInterval, テンポ変化情報が正しくない場合、近似したコマに展開されます。  
 この場合、エディターの展開はできますがコマの位置が想定と異なることがあります。  
+- 現状、譜面ヘッダー及びフッターには未対応です。
