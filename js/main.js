@@ -235,8 +235,9 @@ const setParameters = (_names, _baseData) => {
 
     // ファーストナンバーの取得
     const firstNums = document.getElementById(`firstNum`).value;
-    if (g_rootObj.first_num !== undefined) {
-        g_paramObj.firstNums = g_rootObj.first_num.split(`,`).map(data => parseFloat(data));
+    const revFirstData = [g_rootObj.first_num, g_rootObj.first_data].find(data => data !== undefined);
+    if (revFirstData !== undefined) {
+        g_paramObj.firstNums = revFirstData.split(`,`).map(data => parseFloat(data));
     } else if (firstNums !== ``) {
         g_paramObj.firstNums = firstNums.split(`,`);
     } else {
@@ -246,8 +247,9 @@ const setParameters = (_names, _baseData) => {
 
     // Intervalの取得
     const intervals = document.getElementById(`interval`).value;
-    if (g_rootObj.haba_num !== undefined) {
-        g_paramObj.intervals = g_rootObj.haba_num.split(`,`).map(data => parseFloat(data));
+    const revIntervalData = [g_rootObj.haba_num, g_rootObj.interval_data].find(data => data !== undefined);
+    if (revIntervalData !== undefined) {
+        g_paramObj.intervals = revIntervalData.split(`,`).map(data => parseFloat(data));
     } else if (intervals !== ``) {
         g_paramObj.intervals = intervals.split(`,`);
     } else {
@@ -262,8 +264,9 @@ const setParameters = (_names, _baseData) => {
 
     // テンポ変化位置の取得
     const tempos = document.getElementById(`tempo`).value;
-    if (g_rootObj.haba_page_num !== undefined) {
-        g_paramObj.tempos = g_rootObj.haba_page_num.split(`,`).map(data => parseFloat(data));
+    const revTempoData = [g_rootObj.haba_page_num, g_rootObj.rhythmchange_data].find(data => data !== undefined);
+    if (revTempoData !== undefined) {
+        g_paramObj.tempos = revTempoData.split(`,`).map(data => parseFloat(data));
     } else {
         g_paramObj.tempos = (tempos !== `` ? tempos.split(`,`) : [0]);
     }
