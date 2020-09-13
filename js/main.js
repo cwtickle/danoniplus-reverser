@@ -5,11 +5,11 @@
  *
  * Source by tickle
  * Created : 2020/09/09
- * Revised : 2020/09/12
+ * Revised : 2020/09/13
  *
  * https://github.com/cwtickle/danoniplus-reverser
  */
-const g_version = `Ver 0.12.2`;
+const g_version = `Ver 0.13.0`;
 
 // バージョン名の表記
 document.getElementById(`version`).innerHTML = `(${g_version})`;
