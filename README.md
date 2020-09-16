@@ -1,4 +1,6 @@
-# Dancing☆Onigiri ChartReverser
+# Dancing☆Onigiri Chart Reverser
+[![Maintainability](https://api.codeclimate.com/v1/badges/cd9f754272b986befd7d/maintainability)](https://codeclimate.com/github/cwtickle/danoniplus-reverser/maintainability)
+[![Join the chat at https://gitter.im/danonicw/community](https://badges.gitter.im/danonicw/community.svg)](https://gitter.im/danonicw/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)  
 Dancing☆Onigiriの譜面データを、各種エディターデータへ逆変換するツールです。  
 (従来の ScoreRevival に相当するツール)
 
