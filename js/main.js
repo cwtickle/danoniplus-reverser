@@ -188,41 +188,23 @@ const createBaseData = (_names, _scoreNo, _keyNum) => {
 }
 
 /**
- * ファーストナンバーの自動取得
+ * ファーストナンバー・ラストナンバーの自動取得
  * @param {array} _names 
  * @param {object} _baseData 
+ * @param {function} _func 
  */
-const getFirstNum = (_names, _baseData) => {
-
-    let minData = [];
-    let dataExistFlg = false;
-    const keyNames = _names.concat([`speedFrame`, `boostFrame`]);
-    keyNames.forEach(name => {
-        if (_baseData[name] !== undefined) {
-            minData.push(_baseData[name].reduce(getMin));
-            dataExistFlg = true;
-        }
-    });
-    return dataExistFlg ? minData.reduce(getMin) : 200;
-}
-
-/**
- * ラストナンバーの自動取得
- * @param {array} _names 
- * @param {object} _baseData 
- */
-const getLastNum = (_names, _baseData) => {
+const getFirstLastNum = (_names, _baseData, _func) => {
 
     let maxData = [];
     let dataExistFlg = false;
     const keyNames = _names.concat([`speedFrame`, `boostFrame`]);
     keyNames.forEach(name => {
         if (_baseData[name] !== undefined) {
-            maxData.push(_baseData[name].reduce(getMax));
+            maxData.push(_baseData[name].reduce(_func));
             dataExistFlg = true;
         }
     });
-    return dataExistFlg ? maxData.reduce(getMax) : 200;
+    return dataExistFlg ? maxData.reduce(_func) : 200;
 }
 
 /**
@@ -241,7 +223,7 @@ const setParameters = (_names, _baseData) => {
     } else if (firstNums !== ``) {
         g_paramObj.firstNums = firstNums.split(`,`);
     } else {
-        g_paramObj.firstNums = [getFirstNum(_names, _baseData)];
+        g_paramObj.firstNums = [getFirstLastNum(_names, _baseData, getMin)];
     }
     document.getElementById(`firstNum`).value = g_paramObj.firstNums.join(`,`);
 
@@ -337,13 +319,27 @@ const calcPoint = (_names, _baseData) => {
 }
 
 /**
- * FUJIさんエディター Ver2版出力
+ * 16進数の文字列へ変換
+ * @param {number} _val 
+ */
+const valTo16 = (_val) => (_val % 16).toString(16).toUpperCase();
+
+/**
+ * 36進数の文字列へ変換
+ * @param {number} _val 
+ * @param {boolean} _majorKeysFlg 
+ */
+const valTo36 = (_val, _majorKeysFlg = true) => (_majorKeysFlg ? _val : (_val + 10)).toString(36).toUpperCase();
+
+/**
+ * FUJIさんエディター用譜面構成データの作成
  * @param {string} _keys 
  * @param {array} _names 
  * @param {object} _saveData 
  * @param {object} _baseData 
+ * @param {boolean} _majorKeysFlg
  */
-const makePointFuji2 = (_keys, _names, _saveData, _baseData) => {
+const makePointFuji = (_keys, _names, _saveData, _baseData, _majorKeysFlg = true) => {
 
     let editorData = [];
     _names.forEach((name, i) => {
@@ -359,7 +355,7 @@ const makePointFuji2 = (_keys, _names, _saveData, _baseData) => {
                 if (editorData[koma] === undefined) {
                     editorData[koma] = [];
                 }
-                editorData[koma].push(`${(koma % 16).toString(16)}${arrowPos.toString(36)}0`);
+                editorData[koma].push(`${valTo16(koma)}${valTo36(arrowPos, _majorKeysFlg)}0`);
             });
         } else {
             // フリーズ開始：小節部:00～15, 矢印部:0～6, 調整部:1桁(開始Def:5)
@@ -371,19 +367,19 @@ const makePointFuji2 = (_keys, _names, _saveData, _baseData) => {
                 if (editorData[koma] === undefined) {
                     editorData[koma] = [];
                 }
-                editorData[koma].push(`${(koma % 16).toString(16)}${arrowPos.toString(36)}0+${String(komaEnd - koma).padStart(3, '0')}`);
+                editorData[koma].push(`${valTo16(koma)}${valTo36(arrowPos, _majorKeysFlg)}0+${String(komaEnd - koma).padStart(3, '0')}`);
 
                 if (editorData[komaEnd] === undefined) {
                     editorData[komaEnd] = [];
                 }
-                editorData[komaEnd].push(`${(komaEnd % 16).toString(16)}${arrowPos.toString(36)}0`);
+                editorData[komaEnd].push(`${valTo16(komaEnd)}${valTo36(arrowPos, _majorKeysFlg)}0`);
             })
         }
     });
 
     const speedPoint = {
-        speed: `b`,
-        boost: `c`,
+        speed: (_majorKeysFlg ? `B` : `U`),
+        boost: (_majorKeysFlg ? `C` : `V`),
     };
     [`speed`, `boost`].forEach(name => {
         if (_saveData[`${name}Frame`] === undefined) {
@@ -395,7 +391,7 @@ const makePointFuji2 = (_keys, _names, _saveData, _baseData) => {
             }
             const speedZ = Math.floor((_baseData[`${name}Dat`][j] + 16) % 16).toString(16).toUpperCase();
             const speedS = String(((Math.round(_baseData[`${name}Dat`][j] * 100) % 100) + 100) % 100).padStart(2, '0');
-            editorData[koma].push(`${(koma % 16).toString(16)}${speedPoint[name]}0-${speedZ}${speedS}`);
+            editorData[koma].push(`${valTo16(koma)}${speedPoint[name]}0-${speedZ}${speedS}`);
         });
     });
 
@@ -403,70 +399,26 @@ const makePointFuji2 = (_keys, _names, _saveData, _baseData) => {
 };
 
 /**
- * FUJIさんエディター Nkey版出力
- * @param {string} _keys 
- * @param {array} _names 
+ * 速度データの格納
  * @param {object} _saveData 
  * @param {object} _baseData 
+ * @param {string} _delimiter 
  */
-const makePointFujiN = (_keys, _names, _saveData, _baseData) => {
+const setSpeedData = (_saveData, _baseData, _delimiter = `,`) => {
 
-    let editorData = [];
-    _names.forEach((name, i) => {
-
-        const arrowPos = i % (_names.length / 2);
-        if (_saveData[name] === undefined) {
-            return;
-        }
-        if (i < _names.length / 2) {
-            // 小節部:00～15, 矢印部:0～6, 調整部:1桁
-            // 譜面(矢印出力)
-            _saveData[name].forEach(koma => {
-                if (editorData[koma] === undefined) {
-                    editorData[koma] = [];
-                }
-                editorData[koma].push(`${(koma % 16).toString(16).toUpperCase()}${(arrowPos + 10).toString(36).toUpperCase()}0`);
-            });
-        } else {
-            // フリーズ開始：小節部:00～15, 矢印部:0～6, 調整部:1桁(開始Def:5)
-            // 譜面(フリーズアロー出力)
-            const frzStarts = getOddEvenArray(_saveData[name], 1);
-            const frzEnds = getOddEvenArray(_saveData[name], 2);
-            frzStarts.forEach((koma, j) => {
-                const komaEnd = frzEnds[j];
-                if (editorData[koma] === undefined) {
-                    editorData[koma] = [];
-                }
-                editorData[koma].push(`${(koma % 16).toString(16).toUpperCase()}${(arrowPos + 10).toString(36).toUpperCase()}0+${String(komaEnd - koma).padStart(3, '0')}`);
-
-                if (editorData[komaEnd] === undefined) {
-                    editorData[komaEnd] = [];
-                }
-                editorData[komaEnd].push(`${(komaEnd % 16).toString(16).toUpperCase()}${(arrowPos + 10).toString(36).toUpperCase()}0`);
-            })
-        }
-    });
-
-    const speedPoint = {
-        speed: `U`,
-        boost: `V`,
-    };
+    let speedData = ``;
     [`speed`, `boost`].forEach(name => {
-        if (_saveData[`${name}Frame`] === undefined) {
-            return;
-        }
-        _saveData[`${name}Frame`].forEach((koma, j) => {
-            if (editorData[koma] === undefined) {
-                editorData[koma] = [];
+        if (_saveData[`${name}Frame`] !== undefined) {
+            let speedPrintArray = [];
+            for (let k = 0; k < _saveData[`${name}Frame`].length; k++) {
+                speedPrintArray.push(`${_saveData[`${name}Frame`][k]}${_delimiter}${_baseData[`${name}Dat`][k]}`);
             }
-            const speedZ = Math.floor((_baseData[`${name}Dat`][j] + 16) % 16).toString(16).toUpperCase();
-            const speedS = String(((Math.round(_baseData[`${name}Dat`][j] * 100) % 100) + 100) % 100).padStart(2, '0');
-            editorData[koma].push(`${(koma % 16).toString(16).toUpperCase()}${speedPoint[name]}0-${speedZ}${speedS}`);
-        });
+            speedData += `${speedPrintArray.join(',')}`;
+        }
+        speedData += `&`;
     });
-
-    return editorData;
-};
+    return speedData;
+}
 
 /**
  * セーブデータの出力処理
@@ -482,17 +434,7 @@ const printSaveData = {
             saveData += `&`;
         });
 
-        [`speed`, `boost`].forEach(name => {
-            if (_saveData[`${name}Frame`] !== undefined) {
-                let speedPrintArray = [];
-                for (let k = 0; k < _saveData[`${name}Frame`].length; k++) {
-                    speedPrintArray.push(`${_saveData[`${name}Frame`][k]}=${_baseData[`${name}Dat`][k]}`);
-                }
-                saveData += `${speedPrintArray.join(',')}`;
-            }
-            saveData += `&`;
-        });
-
+        saveData += setSpeedData(_saveData, _baseData, `=`);
         saveData += `&`;
         saveData += `${g_paramObj.firstNums.join(',')}&`;
         saveData += `${g_paramObj.intervals.join(',')}&`;
@@ -518,17 +460,7 @@ const printSaveData = {
             }
         });
 
-        [`speed`, `boost`].forEach(name => {
-            if (_saveData[`${name}Frame`] !== undefined) {
-                let speedPrintArray = [];
-                for (let k = 0; k < _saveData[`${name}Frame`].length; k++) {
-                    speedPrintArray.push(`${_saveData[`${name}Frame`][k]},${_baseData[`${name}Dat`][k]}`);
-                }
-                saveData += `${speedPrintArray.join(',')}`;
-            }
-            saveData += `&`;
-        });
-
+        saveData += setSpeedData(_saveData, _baseData);
         saveData += `&first_data=${g_paramObj.firstNums.join(',')}&interval_data=${g_paramObj.intervals.join(',')}`;
         saveData += `&rhythmchange_data=&version=2.38&dosPath=&tuning=name`;
 
@@ -538,7 +470,7 @@ const printSaveData = {
     fuji: (_keys, _names, _saveData, _baseData, _scoreNo) => {
 
         const majorKeysFlg = [`5`, `7`, `7i`, `9`, `11`].includes(_keys);
-        const lastNum = getLastNum(_names, _saveData);
+        const lastNum = getFirstLastNum(_names, _saveData, getMax);
         let maxBar = Math.ceil((lastNum + 1) / g_measure[g_paramObj.rhythm]);
         if (maxBar < 120) {
             maxBar = 120;
@@ -588,12 +520,7 @@ const printSaveData = {
         */
         saveData += `\r\n;===以下譜面\r\n`;
 
-        let editorData = ``;
-        if (majorKeysFlg) {
-            editorData = makePointFuji2(_keys, _names, _saveData, _baseData);
-        } else {
-            editorData = makePointFujiN(_keys, _names, _saveData, _baseData);
-        }
+        const editorData = makePointFuji(_keys, _names, _saveData, _baseData, majorKeysFlg);
 
         for (let j = 0, barIndex = 0; j < maxBar * 16; j += 16, barIndex++) {
             saveData += `${String(barIndex).padStart(3, '0')}:`;
