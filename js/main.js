@@ -188,41 +188,23 @@ const createBaseData = (_names, _scoreNo, _keyNum) => {
 }
 
 /**
- * ファーストナンバーの自動取得
+ * ファーストナンバー・ラストナンバーの自動取得
  * @param {array} _names 
  * @param {object} _baseData 
+ * @param {function} _func 
  */
-const getFirstNum = (_names, _baseData) => {
-
-    let minData = [];
-    let dataExistFlg = false;
-    const keyNames = _names.concat([`speedFrame`, `boostFrame`]);
-    keyNames.forEach(name => {
-        if (_baseData[name] !== undefined) {
-            minData.push(_baseData[name].reduce(getMin));
-            dataExistFlg = true;
-        }
-    });
-    return dataExistFlg ? minData.reduce(getMin) : 200;
-}
-
-/**
- * ラストナンバーの自動取得
- * @param {array} _names 
- * @param {object} _baseData 
- */
-const getLastNum = (_names, _baseData) => {
+const getFirstLastNum = (_names, _baseData, _func) => {
 
     let maxData = [];
     let dataExistFlg = false;
     const keyNames = _names.concat([`speedFrame`, `boostFrame`]);
     keyNames.forEach(name => {
         if (_baseData[name] !== undefined) {
-            maxData.push(_baseData[name].reduce(getMax));
+            maxData.push(_baseData[name].reduce(_func));
             dataExistFlg = true;
         }
     });
-    return dataExistFlg ? maxData.reduce(getMax) : 200;
+    return dataExistFlg ? maxData.reduce(_func) : 200;
 }
 
 /**
@@ -241,7 +223,7 @@ const setParameters = (_names, _baseData) => {
     } else if (firstNums !== ``) {
         g_paramObj.firstNums = firstNums.split(`,`);
     } else {
-        g_paramObj.firstNums = [getFirstNum(_names, _baseData)];
+        g_paramObj.firstNums = [getFirstLastNum(_names, _baseData, getMin)];
     }
     document.getElementById(`firstNum`).value = g_paramObj.firstNums.join(`,`);
 
@@ -417,6 +399,28 @@ const makePointFuji = (_keys, _names, _saveData, _baseData, _majorKeysFlg = true
 };
 
 /**
+ * 速度データの格納
+ * @param {object} _saveData 
+ * @param {object} _baseData 
+ * @param {string} _delimiter 
+ */
+const setSpeedData = (_saveData, _baseData, _delimiter = `,`) => {
+
+    let speedData = ``;
+    [`speed`, `boost`].forEach(name => {
+        if (_saveData[`${name}Frame`] !== undefined) {
+            let speedPrintArray = [];
+            for (let k = 0; k < _saveData[`${name}Frame`].length; k++) {
+                speedPrintArray.push(`${_saveData[`${name}Frame`][k]}${_delimiter}${_baseData[`${name}Dat`][k]}`);
+            }
+            speedData += `${speedPrintArray.join(',')}`;
+        }
+        speedData += `&`;
+    });
+    return speedData;
+}
+
+/**
  * セーブデータの出力処理
  */
 const printSaveData = {
@@ -430,17 +434,7 @@ const printSaveData = {
             saveData += `&`;
         });
 
-        [`speed`, `boost`].forEach(name => {
-            if (_saveData[`${name}Frame`] !== undefined) {
-                let speedPrintArray = [];
-                for (let k = 0; k < _saveData[`${name}Frame`].length; k++) {
-                    speedPrintArray.push(`${_saveData[`${name}Frame`][k]}=${_baseData[`${name}Dat`][k]}`);
-                }
-                saveData += `${speedPrintArray.join(',')}`;
-            }
-            saveData += `&`;
-        });
-
+        saveData += setSpeedData(_saveData, _baseData, `=`);
         saveData += `&`;
         saveData += `${g_paramObj.firstNums.join(',')}&`;
         saveData += `${g_paramObj.intervals.join(',')}&`;
@@ -466,17 +460,7 @@ const printSaveData = {
             }
         });
 
-        [`speed`, `boost`].forEach(name => {
-            if (_saveData[`${name}Frame`] !== undefined) {
-                let speedPrintArray = [];
-                for (let k = 0; k < _saveData[`${name}Frame`].length; k++) {
-                    speedPrintArray.push(`${_saveData[`${name}Frame`][k]},${_baseData[`${name}Dat`][k]}`);
-                }
-                saveData += `${speedPrintArray.join(',')}`;
-            }
-            saveData += `&`;
-        });
-
+        saveData += setSpeedData(_saveData, _baseData);
         saveData += `&first_data=${g_paramObj.firstNums.join(',')}&interval_data=${g_paramObj.intervals.join(',')}`;
         saveData += `&rhythmchange_data=&version=2.38&dosPath=&tuning=name`;
 
@@ -486,7 +470,7 @@ const printSaveData = {
     fuji: (_keys, _names, _saveData, _baseData, _scoreNo) => {
 
         const majorKeysFlg = [`5`, `7`, `7i`, `9`, `11`].includes(_keys);
-        const lastNum = getLastNum(_names, _saveData);
+        const lastNum = getFirstLastNum(_names, _saveData, getMax);
         let maxBar = Math.ceil((lastNum + 1) / g_measure[g_paramObj.rhythm]);
         if (maxBar < 120) {
             maxBar = 120;
