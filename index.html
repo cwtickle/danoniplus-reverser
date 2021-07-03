@@ -86,6 +86,7 @@
         <textarea id="output-save-data" readonly></textarea>
       </div>
       <button type="button" onclick="copy()" class="common_button">Copy</button>
+      <button type="button" onclick="download()" class="common_button">Download As File</button>
     </form>
   </div>
   <hr />
@@ -101,6 +102,25 @@
   function copy() {
     const saveData = document.getElementById("output-save-data").value;
     navigator.clipboard.writeText(saveData);
+  }
+  
+  function download() {
+    const saveData = document.getElementById("output-save-data").value;
+    const file = new Blob([saveData], {
+        type: `text/html;charset=shift_jis`
+    });
+
+    // 見えないダウンロードリンクを作る
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(file);
+    a.download = `save.txt`;
+    a.style.display = 'none';
+    
+    // DOMツリーに存在しないとFirefox等でダウンロードできない
+    document.body.appendChild(a);
+    
+    // ダウンロード
+    a.click();
   }
 </script>
 
